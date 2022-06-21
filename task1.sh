@@ -11,7 +11,7 @@ local em_sur=$(echo ${name[1]}| tr "[:upper:]" "[:lower:]") # got surename and t
 local email=$em_fl$em_sur$location_id"@abc.com" # create e-mail column
 local department=$(awk -F "," '{print $6}' <<<"$*") # got department column
 local res_ln="$id,$location_id,$name,$title,$email,$department" # put all column into string (line) 
-echo "$res_ln" # runction output
+echo "$res_ln" # function output
 }
 
 
