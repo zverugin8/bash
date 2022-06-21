@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 #record="30,20,Sean Houston,Director of new Services,,"
 record="3,2,Brenda brown,"Director, Second Career Services",,"
 function fixit() {
