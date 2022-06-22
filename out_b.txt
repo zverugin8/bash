@@ -1,4 +1,3 @@
-Asserts Samples;1..7 tests
 false;1;expecting command finishes successfully (bash way);7ms
 false;2;expecting command finishes successfully (the same as above, bats way);27ms
 true;3;expecting command fails (the same as above, bats way);23ms
@@ -6,4 +5,3 @@ true;4;expecting command prints exact value (bash way);10ms
 true;5;expecting command prints exact value (the same as above, bats way);27ms
 true;6;expecting command prints some message (bash way);12ms
 true;7;expecting command prints some message (the same as above, bats way);26ms
-success 5;total 7;failed 2;rating 71.43;spent 136ms
