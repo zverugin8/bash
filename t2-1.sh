@@ -88,10 +88,6 @@ fi
 OIFS=$IFS
 while IFS=";" read status number name duration
 do
-#echo $number
-#echo $status
-#echo $name
-#echo $duration
 BUCKET_NAME=$name
 OBJECT_NAME=$status
 TARGET_LOCATION=$duration
