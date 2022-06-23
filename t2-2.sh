@@ -35,12 +35,15 @@ cat ./output.txt | tail -n 1 | sed 's/ (of / success;/
                                     s/) tests passed/ total/
                                     s/tests failed/failed/
                                     s/ rated as / rating /
+                                    s/\%//
                                     s/, /;/g' | \
                                     sed -r 's/([1-9]+) ([a-zA-Z]+)/\2 \1/g' > ./out_t.txt
+
 
 # read body
 arr=()
 readarray -t arr < ./out_b.txt
+
 # function json
 function test1() {
 jq --help > /dev/null 2>&1 ; if [[ $? -ne 0 ]] ; then
@@ -59,12 +62,18 @@ JSON_STRING=$(jq -n \
                    '$ARGS.named')
 echo $JSON_STRING
 }
-test1 ${arr[0]}
+#test1 ${arr[0]}
 
 function test3 () {
 local name=$(echo $* | awk -F ";" '{print $3}')
-echo $*
-echo $name   
+local status=$(echo $* | awk -F ";" '{print $1}')
+local duration=$(echo $* | awk -F ";" '{print $4}')
+#printf -v var '{\n"name":'"$name"',\n"status":'$status',\n"duration":'"$duration"'\n},\n'
+#printf -v var '{\n"name":'"$name"',\n},\n'
+ printf -v var '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
+echo "$var"
 }
-#test3 "${arr[0]}"
-
+for((i=0;i<${#arr[@]};i++)); do
+  test3 "${arr[$i]}"
+  #printf '\n%s,'
+done

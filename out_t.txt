@@ -1,1 +1,1 @@
-success 5;total 7;failed 2;rating 71.43%;spent 136ms
+success 5;total 7;failed 2;rating 71.43;spent 136ms
