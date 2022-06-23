@@ -1,13 +1,16 @@
 #!/usr/bin/bash
 #function to format file to semicolon separated values
 function format_file () {
-  head -n 1 ./output.txt | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.txt
-  tail -n+3 ./output.txt | head -n -2 | sed 's/not ok/false;/ # not ok to false
+  sed -i '/^$/d' ./$1 # remove empty newlines
+  f_name="$RANDOM"
+  touch ./"$f_name"_1.txt
+  head -n 1 ./$1 | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.txt
+  tail -n+3 ./$1 | head -n -2 | sed 's/not ok/false;/ # not ok to false
                                                   s/  */ /g
                                                   s/ok/true;/
                                                   s/), /);/
                                                   s/ \([0-9]\+\) /\1;/' > ./out_2.txt
-  tail -n 1 ./output.txt | sed 's/ (of / success;/
+  tail -n 1 ./$1 | sed 's/ (of / success;/
                                       s/) tests passed/ total/
                                       s/tests failed/failed/
                                       s/ rated as / rating /
@@ -29,7 +32,7 @@ function json_body () {
   echo "$var_test3"
 }
 
-format_file
+format_file $1
 
 function jbody_all () {
   # read body
@@ -61,20 +64,27 @@ function json_t () {
   #s=$(echo ${success[1]})
   #echo "var1 is:${var1[1]}"qq
   #printf -v var_t '\"summary\":{\n\"'"${success[0]}"'\":'"${success[1]}"',\n}\n'
-  printf -v var_t '\"summary\"{\n \"'${var1[0]}'\":'"${var1[1]}"',\n '\"${var2[0]}'\":'${var2[1]}',\n \"'${var3[0]}'\":'"${var3[1]}"',\n \"'${var4[0]}'\":'"${var4[1]}"'\n'}
+  printf -v var_t '\"summary\":{\n \"'${var1[0]}'\":'"${var1[1]}"',\n '\"${var2[0]}'\":'${var2[1]}',\n \"'${var3[0]}'\":'"${var3[1]}"',\n \"'${var4[0]}'\":'\""${var4[1]}"'\"\n'}
   echo "$var_t"
 }
-jbody_all
-json_t
 
 
-#rm ./out_*.txt
 
 function json_h () {
-  local testName
+  local testName_v
   local tests=()
-  testName="$(awk -F ";" '{print $1}' ./out_3.txt)"
-  tests=( $(awk -F ";" '{print $2}' ./out_3.txt) )
-  
+  testName_v="$(awk -F ";" '{print $1}' ./out_1.txt)"
+  tests=( $(awk -F ";" '{print $2}' ./out_1.txt) )
+  #echo "$testName"
+  #echo "${tests[1]}"
+  printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["
+  jbody_all
+  printf "]%s\n" ","
+  json_t
+  printf "%s\n" "}"
 }
 json_h
+rm ./out_*.txt
+#jbody_all
+#json_t
+#rm ./out_*.txt
