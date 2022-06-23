@@ -70,9 +70,11 @@ local status=$(echo $* | awk -F ";" '{print $1}')
 local duration=$(echo $* | awk -F ";" '{print $4}')
 #printf -v var '{\n"name":'"$name"',\n"status":'$status',\n"duration":'"$duration"'\n},\n'
 #printf -v var '{\n"name":'"$name"',\n},\n'
- printf -v var '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
-echo "$var"
+ printf -v var_test3 '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
+echo "$var_test3"
 }
+
+
 for((i=0;i<${#arr[@]};i++)); do
   test3 "${arr[$i]}"
   #printf '\n%s,'

@@ -1,0 +1,61 @@
+#!/usr/bin/bash
+#format file to semicolon separated values
+head -n 1 ./output.txt | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.txt
+tail -n+3 ./output.txt | head -n -2 | sed 's/not ok/false;/ # not ok to false
+                                                 s/  */ /g
+                                                 s/ok/true;/
+                                                 s/), /);/
+                                                 s/ \([0-9]\+\) /\1;/' > ./out_2.txt
+tail -n 1 ./output.txt | sed 's/ (of / success;/
+                                    s/) tests passed/ total/
+                                    s/tests failed/failed/
+                                    s/ rated as / rating /
+                                    s/\%//
+                                    s/spent/duration/
+                                    s/, /;/g' | \
+                                    sed -r 's/([1-9]+) ([a-zA-Z]+)/\2 \1/g' > ./out_3.txt
+
+#create function to convert formated body to json string
+function json_body () {
+local name
+local status
+local duration
+name=$(echo "$*" | awk -F ";" '{print $3}')
+status=$(echo "$*" | awk -F ";" '{print $1}')
+duration=$(echo "$*" | awk -F ";" '{print $4}')
+printf -v var_test3 '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
+echo "$var_test3"
+}
+
+# read body
+arr_b=()
+readarray -t arr_b < ./out_2.txt
+
+#interate body
+#for((i=0;i<${#arr_b[@]};i++)); do
+#  json_body "${arr_b[$i]}"
+  #printf '\n%s,'
+#done
+#rm ./out_*.txt
+#echo "$(json_body "${arr_b[0]}")",
+
+function json_t () {
+local var1=()
+local var2=()
+local var3=()
+local var4=()
+var1=( $(awk -F ";" '{print $1}' ./out_3.txt) )
+var2=( $(awk -F ";" '{print $3}' ./out_3.txt) )
+var3=( $(awk -F ";" '{print $4}' ./out_3.txt) )
+var4=( $(awk -F ";" '{print $5}' ./out_3.txt) )
+#mapfile -d " " var1 <<< "$(awk -F ";" '{print $1}' ./out_3.txt)"
+#mapfile -d " " failed <<< $(awk -F ";" '{print $3}' ./out_3.txt)
+#mapfile -d " " rating <<< "$(awk -F ";" '{print $4}' ./out_3.txt)"
+#mapfile -d " " duration <<< "$(awk -F ";" '{print $5}' ./out_3.txt)"
+#s=$(echo ${success[1]})
+#echo "var1 is:${var1[1]}"qq
+#printf -v var_t '\"summary\":{\n\"'"${success[0]}"'\":'"${success[1]}"',\n}\n'
+printf -v var_t '\"summary\"{\n \"'${var1[0]}'\":'"${var1[1]}"',\n '\"${var2[0]}'\":'${var2[1]}',\n \"'${var3[0]}'\":'"${var3[1]}"',\n \"'${var4[0]}'\":'"${var4[1]}"'\n'}
+echo "$var_t" > ./1111.txt
+}
+json_t
