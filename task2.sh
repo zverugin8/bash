@@ -80,7 +80,8 @@ function out_file () {
   local s_file
   local out_fl
   full_name="$1"
-  pth=${full_name%/*} # get input file full path
+  #pth=${full_name%/*} # get input file full path
+  pth=$(dirname "$full_name")
   f_file=${full_name##*/} # get input file full name
   s_file=${f_file%.*} # get input file name withot extension
   out_fl=$pth"/"$s_file".json" # generate output file name with path
