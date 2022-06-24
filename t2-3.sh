@@ -1,26 +1,26 @@
 #!/usr/bin/bash
 #function to format file to semicolon separated values
 function format_file () {
-  sed -i '/^$/d' ./$1 # remove empty newlines
-  f_name="$RANDOM"
-  touch ./"$f_name"_1.txt
-  head -n 1 ./$1 | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.txt
-  tail -n+3 ./$1 | head -n -2 | sed 's/not ok/false;/ # not ok to false
+  sed -i '/^$/d' $1 # remove empty newlines
+  #f_name="$RANDOM"
+  #touch ./"$f_name"_1.txt
+  head -n 1 $1 | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.tmp
+  tail -n+3 $1 | head -n -2 | sed 's/not ok/false;/ # not ok to false
                                                   s/  */ /g
                                                   s/ok/true;/
                                                   s/), /);/
-                                                  s/ \([0-9]\+\) /\1;/' > ./out_2.txt
-  tail -n 1 ./$1 | sed 's/ (of / success;/
+                                                  s/ \([0-9]\+\) /\1;/' > ./out_2.tmp
+  tail -n 1 $1 | sed 's/ (of / success;/
                                       s/) tests passed/ total/
                                       s/tests failed/failed/
                                       s/ rated as / rating /
                                       s/\%//
                                       s/spent/duration/
                                       s/, /;/g' | \
-                                      sed -r 's/([1-9]+) ([a-zA-Z]+)/\2 \1/g' > ./out_3.txt
+                                      sed -r 's/([1-9]+) ([a-zA-Z]+)/\2 \1/g' > ./out_3.tmp
 }
 
-#cfunction to convert formated body string to 1 json block
+#function to convert formated body string to one json block
 function json_body () {
   local name
   local status
@@ -31,13 +31,11 @@ function json_body () {
   printf -v var_test3 '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
   echo "$var_test3"
 }
-
-format_file $1
-
+#Generate full body json block
 function jbody_all () {
   # read body
   arr_b=()
-  readarray -t arr_b < ./out_2.txt
+  readarray -t arr_b < ./out_2.tmp
   #interate body
   for((i=0;i<${#arr_b[@]};i++)); do
       if  (( i==(${#arr_b[@]}-1) )) ; then
@@ -46,17 +44,17 @@ function jbody_all () {
       fi
   done
 }
-#echo "$(json_body "${arr_b[0]}")",
 
+#Generate last json block
 function json_t () {
   local var1=()
   local var2=()
   local var3=()
   local var4=()
-  var1=( $(awk -F ";" '{print $1}' ./out_3.txt) )
-  var2=( $(awk -F ";" '{print $3}' ./out_3.txt) )
-  var3=( $(awk -F ";" '{print $4}' ./out_3.txt) )
-  var4=( $(awk -F ";" '{print $5}' ./out_3.txt) )
+  var1=( $(awk -F ";" '{print $1}' ./out_3.tmp) )
+  var2=( $(awk -F ";" '{print $3}' ./out_3.tmp) )
+  var3=( $(awk -F ";" '{print $4}' ./out_3.tmp) )
+  var4=( $(awk -F ";" '{print $5}' ./out_3.tmp) )
   #mapfile -d " " var1 <<< "$(awk -F ";" '{print $1}' ./out_3.txt)"
   #mapfile -d " " failed <<< $(awk -F ";" '{print $3}' ./out_3.txt)
   #mapfile -d " " rating <<< "$(awk -F ";" '{print $4}' ./out_3.txt)"
@@ -68,13 +66,12 @@ function json_t () {
   echo "$var_t"
 }
 
-
-
+#create json header and generate full output in json format
 function json_h () {
   local testName_v
   local tests=()
-  testName_v="$(awk -F ";" '{print $1}' ./out_1.txt)"
-  tests=( $(awk -F ";" '{print $2}' ./out_1.txt) )
+  testName_v="$(awk -F ";" '{print $1}' ./out_1.tmp)"
+  tests=( $(awk -F ";" '{print $2}' ./out_1.tmp) )
   #echo "$testName"
   #echo "${tests[1]}"
   printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["
@@ -83,8 +80,34 @@ function json_h () {
   json_t
   printf "%s\n" "}"
 }
-json_h
-rm ./out_*.txt
-#jbody_all
-#json_t
-#rm ./out_*.txt
+
+#analize input file and generate output file full path
+function out_file () {
+  local full_name
+  local pth
+  local f_file
+  local s_file
+  local out_fl
+  full_name="$1"
+  pth=${full_name%/*}
+  f_file=${full_name##*/}
+  s_file=${f_file%.*}
+  out_fl=$pth"/"$s_file".json"
+  #echo pth $pth
+  #echo f_file: $f_file
+  #echo s_file : $s_file
+  echo "$out_fl"
+}
+
+# arg check
+if [[ -z $1 ]]; then echo "Input file required" ; exit 1 ; fi # no arg or incorect arg = exit 1
+if ! [ -f $1 ]; then echo "File $1 not exists" ; exit 1 ; fi # no arg or incorect arg = exit 1
+
+#user inform messages
+out_fl=$(out_file "$1")
+echo "Input  file: $1"
+echo "Output file: $out_fl"
+
+format_file "$1"
+json_h > "$out_fl" # all blocks to output file
+rm ./out_*.tmp
