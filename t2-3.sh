@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#function to format text file to semicolon separated values and split to 3 temp files
+#function to format text file to semicolon separated values and split it to 3 temp files
 function format_file () {
   sed -i '/^$/d' $1 # remove empty newlines
   head -n 1 $1 | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.tmp
@@ -35,33 +35,26 @@ function json_body () {
 function jbody_all () {
   # read body
   arr_b=()
-  readarray -t arr_b < ./out_2.tmp
+  readarray -t arr_b < ./out_2.tmp #read file body to array
   #interate body
   for((i=0;i<${#arr_b[@]};i++)); do
       if  (( i==(${#arr_b[@]}-1) )) ; then
-      json_body ${arr_b[$i]}
-      else echo "$(json_body ${arr_b[$i]})",
+      json_body ${arr_b[$i]}                 # if last line - write without comma
+      else echo "$(json_body ${arr_b[$i]})", #convert text body line to json block
       fi
   done
 }
 
-#Generate last json block
+#Generate summary json block
 function json_t () {
   local var1=()
   local var2=()
   local var3=()
   local var4=()
-  var1=( $(awk -F ";" '{print $1}' ./out_3.tmp) )
-  var2=( $(awk -F ";" '{print $3}' ./out_3.tmp) )
-  var3=( $(awk -F ";" '{print $4}' ./out_3.tmp) )
-  var4=( $(awk -F ";" '{print $5}' ./out_3.tmp) )
-  #mapfile -d " " var1 <<< "$(awk -F ";" '{print $1}' ./out_3.txt)"
-  #mapfile -d " " failed <<< $(awk -F ";" '{print $3}' ./out_3.txt)
-  #mapfile -d " " rating <<< "$(awk -F ";" '{print $4}' ./out_3.txt)"
-  #mapfile -d " " duration <<< "$(awk -F ";" '{print $5}' ./out_3.txt)"
-  #s=$(echo ${success[1]})
-  #echo "var1 is:${var1[1]}"qq
-  #printf -v var_t '\"summary\":{\n\"'"${success[0]}"'\":'"${success[1]}"',\n}\n'
+  var1=( $(awk -F ";" '{print $1}' ./out_3.tmp) ) #success, arr: name=value
+  var2=( $(awk -F ";" '{print $3}' ./out_3.tmp) ) #failed, arr: name=value
+  var3=( $(awk -F ";" '{print $4}' ./out_3.tmp) ) #rating, arr: name=value
+  var4=( $(awk -F ";" '{print $5}' ./out_3.tmp) ) #duration, arr: name=value
   printf -v var_t '\"summary\":{\n \"'${var1[0]}'\":'"${var1[1]}"',\n '\"${var2[0]}'\":'${var2[1]}',\n \"'${var3[0]}'\":'"${var3[1]}"',\n \"'${var4[0]}'\":'\""${var4[1]}"'\"\n'}
   echo "$var_t"
 }
@@ -72,7 +65,7 @@ function json_h () {
   local tests=()
   testName_v="$(awk -F ";" '{print $1}' ./out_1.tmp)" #get test name field
   tests=( $(awk -F ";" '{print $2}' ./out_1.tmp) )    #just get "test" field from txt header
-  printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["   # generate json header and array begin
+  printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["   # generate json header and array begin symbol "["
   jbody_all
   printf "]%s\n" "," # close array
   json_t # summary block
