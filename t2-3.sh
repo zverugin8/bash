@@ -1,9 +1,8 @@
 #!/usr/bin/bash
-#function to format file to semicolon separated values
+
+#function to format text file to semicolon separated values and split to 3 temp files
 function format_file () {
   sed -i '/^$/d' $1 # remove empty newlines
-  #f_name="$RANDOM"
-  #touch ./"$f_name"_1.txt
   head -n 1 $1 | sed 's/, /;/g'| sed -E -e 's/\[ | \]//g'  > ./out_1.tmp
   tail -n+3 $1 | head -n -2 | sed 's/not ok/false;/ # not ok to false
                                                   s/  */ /g
@@ -31,6 +30,7 @@ function json_body () {
   printf -v var_test3 '%s{\n \"name\": '"\"$name\""',%s\n \"status\": '"$status"',\n%s \"duration\": '"\"$duration\""'\n}'
   echo "$var_test3"
 }
+
 #Generate full body json block
 function jbody_all () {
   # read body
@@ -70,15 +70,13 @@ function json_t () {
 function json_h () {
   local testName_v
   local tests=()
-  testName_v="$(awk -F ";" '{print $1}' ./out_1.tmp)"
-  tests=( $(awk -F ";" '{print $2}' ./out_1.tmp) )
-  #echo "$testName"
-  #echo "${tests[1]}"
-  printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["
+  testName_v="$(awk -F ";" '{print $1}' ./out_1.tmp)" #get test name field
+  tests=( $(awk -F ";" '{print $2}' ./out_1.tmp) )    #just get "test" field from txt header
+  printf "{\n\"testName\":%s\n\"${tests[1]}\":%s\n" "\"$testName_v\"," "["   # generate json header and array begin
   jbody_all
-  printf "]%s\n" ","
-  json_t
-  printf "%s\n" "}"
+  printf "]%s\n" "," # close array
+  json_t # summary block
+  printf "%s\n" "}" #close json
 }
 
 #analize input file and generate output file full path
@@ -89,10 +87,10 @@ function out_file () {
   local s_file
   local out_fl
   full_name="$1"
-  pth=${full_name%/*}
-  f_file=${full_name##*/}
-  s_file=${f_file%.*}
-  out_fl=$pth"/"$s_file".json"
+  pth=${full_name%/*} # get full path
+  f_file=${full_name##*/} # get full name
+  s_file=${f_file%.*} # get file name withot extension
+  out_fl=$pth"/"$s_file".json" # generate output file name with path
   #echo pth $pth
   #echo f_file: $f_file
   #echo s_file : $s_file
@@ -101,7 +99,7 @@ function out_file () {
 
 # arg check
 if [[ -z $1 ]]; then echo "Input file required" ; exit 1 ; fi # no arg or incorect arg = exit 1
-if ! [ -f $1 ]; then echo "File $1 not exists" ; exit 1 ; fi # no arg or incorect arg = exit 1
+if ! [ -f $1 ]; then echo "File $1 not exist" ; exit 1 ; fi # no arg or incorect arg = exit 1
 
 #user inform messages
 out_fl=$(out_file "$1")
@@ -111,3 +109,5 @@ echo "Output file: $out_fl"
 format_file "$1"
 json_h > "$out_fl" # all blocks to output file
 rm ./out_*.tmp
+
+# tested at Linux 5.10.102.1-microsoft-standard-WSL2 #1 SMP Wed Mar 2 00:30:59 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
