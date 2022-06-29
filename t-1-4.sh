@@ -24,18 +24,33 @@ do
 done <<< "$(cat ./account_new.csv | sed 1d)" #read arg(file) to array without first line (header)
 echo "${arr_csv1[@]}"
 
+
+
 len_n=$((${#arr_csv1[@]}-1))
+echo "n:$len_n"
 len_m=${#arr_csv1[@]}
+echo "m:$len_m"
+dupl_str=""
 for((i=0;i<len_n;i++)); do
+  em_o="$(echo "${arr_csv1[$i]}" | awk -v FPAT='([^,]+)|(\"[^\"]+\")' '{print $5}')"
+  #echo "em_o:$em_o"
   flag=0
-  for(( j=$len_m;j<m;j++ )); do
-    echo "i:${i}, j:${j}"
-  done
+  if [[ ! "${dupl_str[*]}" =~ $i ]] ; then 
+    for((j=((i+1));j<len_m;j++ )); do
+      #echo "i:${i}, j:${j}"
+      #echo ${arr_csv1[$j]}
+      em_c="$(echo "${arr_csv1[$j]}" | awk -v FPAT='([^,]+)|(\"[^\"]+\")' '{print $5}')"
+      if [[ "$em_o" == "$em_c" ]]; then
+        dupl_str+="$j "
+        flag=1
+      fi
+      #echo "em_c:$em_c"
+  done #for j
+  fi # if dupl
+ if [[ $flag == 1 ]]; then dupl_str+="$i "; fi
+ flag=0
+done #for i
+echo "dubl_str:$dupl_str"
 
-done
 
 
-#for record in "${arr_csv1[@]}" # interate array
-#do
-#    echo "$record"
-#done
