@@ -4,7 +4,8 @@ function fixit() {      #Fix names, generate e-mails without doubles check
     local location_id=$(awk -F "," '{print $2}' <<< "$@") # select location_id colunm
     local name=$(awk -v FPAT='([^,]+)|(\"[^\"]+\")' '{print $3}' <<<"$*") # select name colunm
     local name=( ${name[@],,} ) # create array from name-surname and full name to lower
-    local name=${name[@]^} # capitalize name first letter
+    #local name=${name[@]^} # capitalize name first letter
+    local name=$(echo "${name[@]}" |sed -r 's/\b(.)/\u\1/g')
     local title=$(awk -v FPAT='([^,]+)|(\"[^\"]+\")' '{print $4}' <<<"$*") # Title,comma inside quotes. Regex: not comma+(one or more times) OR quote-not quote+-quote
     local em_fl=$(echo ${name[0]} | cut -c 1-1 | tr "[:upper:]" "[:lower:]") # prepare create e-mail, got name first letter and to lowercase it
     local em_sur=$(echo ${name[1]}| tr "[:upper:]" "[:lower:]") # got surename and to lower it
