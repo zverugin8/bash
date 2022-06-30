@@ -9,6 +9,7 @@ function out_file () {
   f_file=${full_name##*/}
   s_file=${f_file%.*}
   out_fl=$pth"/"$s_file".json"
+  echo "fl:$out_fl"
 
   if [[ -z $1 ]]; then
     echo "Input file required"
@@ -17,9 +18,9 @@ function out_file () {
 
   if ! [ -f $1 ]; then echo "File $1 not exists" ; exit 1 ; fi
 
-  #echo pth $pth
-  #echo f_file: $f_file
-  #echo s_file : $s_file
+  echo pth $pth
+  echo f_file: $f_file
+  echo s_file : $s_file
   echo "$out_fl"
 }
-out_file $1
+out_file "$1"

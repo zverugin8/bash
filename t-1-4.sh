@@ -35,7 +35,7 @@ for((i=0;i<len_n;i++)); do
   em_o="$(echo "${arr_csv1[$i]}" | awk -v FPAT='([^,]+)|(\"[^\"]+\")' '{print $5}')"
   #echo "em_o:$em_o"
   flag=0
-  if [[ ! "${dupl_str[*]}" =~ $i ]] ; then 
+  if [[ ! "${dupl_str[*]}" =~ $i ]] ; then
     for((j=((i+1));j<len_m;j++ )); do
       #echo "i:${i}, j:${j}"
       #echo ${arr_csv1[$j]}
@@ -43,14 +43,19 @@ for((i=0;i<len_n;i++)); do
       if [[ "$em_o" == "$em_c" ]]; then
         dupl_str+="$j "
         flag=1
+        arr_csv1[$j]=$(fixit1 "${arr_csv1[j]}")
       fi
       #echo "em_c:$em_c"
   done #for j
   fi # if dupl
- if [[ $flag == 1 ]]; then dupl_str+="$i "; fi
+ if [[ $flag == 1 ]]; then
+      dupl_str+="$i "
+       arr_csv1[$i]=$(fixit1 "${arr_csv1[i]}")
+      fi
  flag=0
 done #for i
 echo "dubl_str:$dupl_str"
-
-
-
+for record in "${arr_csv1[@]}" # interate array
+do
+   echo "$record" #>> account_new.csv  # applay fix to line, output fixed line to account_new.csv
+done
